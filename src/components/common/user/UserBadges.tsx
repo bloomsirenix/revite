@@ -17,6 +17,7 @@ enum Badges {
     EarlyAdopter = 256,
     ReservedRelevantJokeBadge1 = 512,
     ReservedRelevantJokeBadge2 = 1024,
+    Partner = 2048,
 }
 
 const BadgesBase = styled.div`
@@ -40,6 +41,16 @@ export default function UserBadges({ badges, uid }: Props) {
     return (
         <BadgesBase>
             <Localizer>
+                {badges & Badges.Partner ? (
+                    <Tooltip
+                        content={
+                            <Text id="app.special.popovers.user_profile.badges.partner" />
+                        }>
+                        <img src="/assets/badges/partner.svg" />
+                    </Tooltip>
+                ) : (
+                    <></>
+                )}
                 {badges & Badges.Founder ? (
                     <Tooltip
                         content={

@@ -3,9 +3,11 @@ import {
     Envelope,
     Edit,
     UserPlus,
-    UserX,
+    UserMinus,
     Group,
     InfoCircle,
+    UserX,
+    Box,
 } from "@styled-icons/boxicons-solid";
 import { observer } from "mobx-react-lite";
 import { Link, useHistory } from "react-router-dom";
@@ -280,6 +282,7 @@ export const UserProfile = observer(
                                 {flags & 4 ? (
                                     <Category>
                                         <Error error="User is banned" />
+                                        <UserX size={16} />
                                     </Category>
                                 ) : undefined}
                                 {user.bot ? (
@@ -425,7 +428,23 @@ export const UserProfile = observer(
                                                         target={x}
                                                         size={32}
                                                     />
+
                                                     <span>{x.name}</span>
+                                                    <Button
+                                                        onClick={async () => {
+                                                            modalController.push(
+                                                                {
+                                                                    type: "ban_member",
+                                                                    member: await x.fetchMember(
+                                                                        user,
+                                                                    ),
+                                                                },
+                                                            );
+                                                        }}>
+                                                        <Text id="app.special.popovers.user_profile.sub.ban" />
+                                                        <br />
+                                                        <UserX size={16} />
+                                                    </Button>
                                                 </div>
                                             </Link>
                                         ),
