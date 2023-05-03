@@ -23,6 +23,7 @@ import {
 } from "../../../lib/renderer/Singleton";
 
 import { state, useApplicationState } from "../../../mobx/State";
+import { DraftObject } from "../../../mobx/stores/Draft";
 import { Reply } from "../../../mobx/stores/MessageQueue";
 
 import { dayjs } from "../../../context/Locale";
@@ -277,7 +278,12 @@ export default observer(({ channel }: Props) => {
 
     // Push message content to draft.
     const setMessage = useCallback(
-        (content?: string) => state.draft.set(channel._id, content),
+        (content?: string) => {
+            const dobj: DraftObject = {
+                content,
+            };
+            state.draft.set(channel._id, dobj);
+        },
         [state.draft, channel._id],
     );
 
@@ -317,7 +323,7 @@ export default observer(({ channel }: Props) => {
         if (uploadState.type === "uploading" || uploadState.type === "sending")
             return;
 
-        const content = state.draft.get(channel._id)?.trim() ?? "";
+        const content = state.draft.get(channel._id)?.content?.trim() ?? "";
         if (uploadState.type === "attached") return sendFile(content);
         if (content.length === 0) return;
 
@@ -526,7 +532,7 @@ export default observer(({ channel }: Props) => {
     }
 
     function isInCodeBlock(cursor: number): boolean {
-        const content = state.draft.get(channel._id) || "";
+        const content = state.draft.get(channel._id)?.content || "";
         const contentBeforeCursor = content.substring(0, cursor);
 
         let delimiterCount = 0;
@@ -607,10 +613,12 @@ export default observer(({ channel }: Props) => {
                     <HackAlertThisFileWillBeReplaced
                         onSelect={(emoji) => {
                             const v = state.draft.get(channel._id);
-                            state.draft.set(
-                                channel._id,
-                                `${v ? `${v} ` : ""}:${emoji}:`,
-                            );
+                            const cnt: DraftObject = {
+                                content:
+                                    (v?.content ? `${v.content} ` : "") +
+                                    `:${emoji}:`,
+                            };
+                            state.draft.set(channel._id, cnt);
                         }}
                         onClose={closePicker}
                     />
@@ -664,7 +672,7 @@ export default observer(({ channel }: Props) => {
                     id="message"
                     maxLength={2000}
                     onKeyUp={onKeyUp}
-                    value={state.draft.get(channel._id) ?? ""}
+                    value={state.draft.get(channel._id)?.content ?? ""}
                     padding="var(--message-box-padding)"
                     onKeyDown={(e) => {
                         if (e.ctrlKey && e.key === "Enter") {
@@ -736,13 +744,11 @@ export default observer(({ channel }: Props) => {
                     onFocus={onFocus}
                     onBlur={onBlur}
                 />
-                {state.experiments.isEnabled("picker") && (
-                    <Action>
-                        <IconButton onClick={() => setPicker(!picker)}>
-                            <HappyBeaming size={24} />
-                        </IconButton>
-                    </Action>
-                )}
+                <Action>
+                    <IconButton onClick={() => setPicker(!picker)}>
+                        <HappyBeaming size={24} />
+                    </IconButton>
+                </Action>
                 <Action>
                     <IconButton
                         className={
